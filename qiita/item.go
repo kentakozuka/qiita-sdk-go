@@ -86,16 +86,20 @@ func (c *Client) ListItems(ctx context.Context, page, perPage uint, query string
 
 	POST /api/v2/items
 */
-func (c *Client) CreateItem(ctx context.Context, item Item) error {
+func (c *Client) CreateItem(ctx context.Context, item Item) (*Item, error) {
 	b, _ := json.Marshal(item)
 	res, err := c.post(ctx, "/api/v2/items", bytes.NewBuffer(b))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if res.StatusCode != http.StatusCreated {
-		return errors.New(res.Status)
+		return nil, errors.New(res.Status)
 	}
-	return nil
+	var retItem Item
+	if err := decodeBody(res, &retItem); err != nil {
+		return nil, err
+	}
+	return &retItem, nil
 }
 
 /*
